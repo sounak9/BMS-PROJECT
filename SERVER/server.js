@@ -25,7 +25,7 @@ const wss = new WebSocket.Server({ server });
 function generateSensorData() {
   const voltage = parseFloat((Math.random() * (14 - 10) + 10).toFixed(2));
   const current = parseFloat((Math.random() * (20 - 0) + 0).toFixed(2));
-  const temperature = parseFloat((Math.random() * (50 - 30) + 30).toFixed(1));
+  const temperature = parseFloat((Math.random() * (50 - 26) + 26).toFixed(1));
   return {
     voltage,
     current,
