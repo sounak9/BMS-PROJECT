@@ -21,6 +21,8 @@ const PORT = 3000;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+let latestSensorData = null;
+
 // Generate random sensor data
 function generateSensorData() {
   const voltage = parseFloat((Math.random() * (14 - 10) + 10).toFixed(2));
@@ -37,6 +39,7 @@ function generateSensorData() {
 // Send and store data every 1 minute
 setInterval(async () => {
   const data = generateSensorData();
+  latestSensorData = data; // Save latest data
   const message = JSON.stringify(data);
 
   // Send to WebSocket clients
@@ -63,6 +66,28 @@ wss.on("connection", (ws) => {
 
 app.get("/", (req, res) => {
   res.send("WebSocket Sensor Server with Supabase Storage is running.");
+});
+
+// Add this endpoint
+app.get("/api/sensor", (req, res) => {
+  if (latestSensorData) {
+    res.json(latestSensorData);
+  } else {
+    res.status(404).json({ error: "No sensor data available" });
+  }
+});
+
+app.get("/api/sensor/logs", async (req, res) => {
+  const { data, error } = await supabase
+    .from("sensor_data")
+    .select("*")
+    .order("timestamp", { ascending: false })
+    .limit(100); // latest 100 logs
+
+  if (error) {
+    return res.status(500).json({ error: "Supabase error" });
+  }
+  res.json(data);
 });
 
 server.listen(PORT, () => {

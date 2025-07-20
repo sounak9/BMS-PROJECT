@@ -2,36 +2,64 @@ import React, { useEffect, useState } from "react";
 import { SimpleGrid, Box } from "@chakra-ui/react";
 import Card from "../components/Card";
 import Graph from "../components/Graph";
+import { fetchSensorLogs } from "../api/sensor";
 
 const Dashboard = () => {
+  const [logs, setLogs] = useState([]);
   const [sensor, setSensor] = useState({
     voltage: 0,
     current: 0,
     temperature: 0,
     timestamp: "",
   });
-  const [history, setHistory] = useState([]);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:3000");
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.voltage) {
-        setSensor(data);
-        setHistory((prev) => [...prev.slice(-19), data]); // keep last 20
-      }
-    };
-    return () => ws.close();
+    fetchSensorLogs()
+      .then((data) => {
+        setLogs(data.reverse()); // oldest first
+        if (data.length > 0) setSensor(data[0]);
+      })
+      .catch(() => setLogs([]));
   }, []);
 
+  // Prepare chart data
+  const labels = logs.map((log) =>
+    new Date(log.timestamp).toLocaleTimeString()
+  );
   const voltageData = {
-    labels: history.map((d) => new Date(d.timestamp).toLocaleTimeString()),
+    labels,
     datasets: [
       {
         label: "Voltage (V)",
-        data: history.map((d) => d.voltage),
+        data: logs.map((log) => log.voltage),
         borderColor: "#38B2AC",
         backgroundColor: "rgba(56,178,172,0.2)",
+        tension: 0.3,
+        fill: true,
+      },
+    ],
+  };
+  const currentData = {
+    labels,
+    datasets: [
+      {
+        label: "Current (A)",
+        data: logs.map((log) => log.current),
+        borderColor: "#F6E05E",
+        backgroundColor: "rgba(246,224,94,0.2)",
+        tension: 0.3,
+        fill: true,
+      },
+    ],
+  };
+  const temperatureData = {
+    labels,
+    datasets: [
+      {
+        label: "Temperature (°C)",
+        data: logs.map((log) => log.temperature),
+        borderColor: "#FC8181",
+        backgroundColor: "rgba(252,129,129,0.2)",
         tension: 0.3,
         fill: true,
       },
@@ -61,14 +89,16 @@ const Dashboard = () => {
         />
         <Card title="SOC" value="90" unit="%" description="State of Charge" />
       </SimpleGrid>
-      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
-        <Graph
-          id="voltageGraph"
-          type="line"
-          data={voltageData}
-          options={{ responsive: true }}
-        />
-        {/* Add more Graph components for current, SOC, temperature as needed */}
+      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+        <Box height="400px">
+          <Graph id="voltageGraph" type="line" data={voltageData} />
+        </Box>
+        <Box height="400px">
+          <Graph id="currentGraph" type="line" data={currentData} />
+        </Box>
+        <Box height="400px">
+          <Graph id="temperatureGraph" type="line" data={temperatureData} />
+        </Box>
       </SimpleGrid>
     </Box>
   );

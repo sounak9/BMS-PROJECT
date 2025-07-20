@@ -54,15 +54,14 @@ const Sidebar = () => (
         </NavLink>
       ))}
     </VStack>
-    <Box flex="1" />
+    <Box flexGrow={1} /> {/* Spacer to push logout down */}
     <Box
-      mt="auto"
       display="flex"
       flexDirection="column"
       alignItems="center"
       cursor="pointer"
       color="gray.400"
-      _hover={{ color: "white" }} // Remove transform for no scale animation
+      _hover={{ color: "white" }}
     >
       <MdLogout size={28} style={{ marginBottom: 8 }} />
       <Text fontSize="xs" fontWeight="medium">
