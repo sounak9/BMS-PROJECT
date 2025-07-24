@@ -57,7 +57,7 @@ setInterval(async () => {
   } else {
     console.log("✅ Data inserted into Supabase:", data);
   }
-}, 60000); // every 1 minute
+}, 30000); // every 1 minute
 
 wss.on("connection", (ws) => {
   console.log("🟢 WebSocket client connected");

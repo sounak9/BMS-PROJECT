@@ -1,6 +1,9 @@
 import React, { useRef, useEffect } from "react";
 import { Box } from "@chakra-ui/react";
 import Chart from "chart.js/auto";
+import annotationPlugin from "chartjs-plugin-annotation";
+
+Chart.register(annotationPlugin);
 
 export default function Graph({ id, type, data, options }) {
   const canvasRef = useRef(null);
