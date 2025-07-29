@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { SimpleGrid, Box } from "@chakra-ui/react";
 import Card from "../components/Card";
 import Graph from "../components/Graph";
-import { fetchSensorLogs } from "../api/sensor";
+import { fetchSensorLogs, fetchSensorData } from "../api/sensor";
 
 const Dashboard = () => {
   const [logs, setLogs] = useState([]);
@@ -14,11 +14,11 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
+    fetchSensorData()
+      .then(setSensor)
+      .catch(() => {});
     fetchSensorLogs()
-      .then((data) => {
-        setLogs(data.reverse()); // oldest first
-        if (data.length > 0) setSensor(data[0]);
-      })
+      .then((data) => setLogs(data.reverse()))
       .catch(() => setLogs([]));
   }, []);
 

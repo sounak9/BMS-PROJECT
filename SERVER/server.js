@@ -57,7 +57,7 @@ setInterval(async () => {
   } else {
     console.log("✅ Data inserted into Supabase:", data);
   }
-}, 30000); // every 1 minute
+}, 15000); // every 1 minute
 
 wss.on("connection", (ws) => {
   console.log("🟢 WebSocket client connected");
@@ -69,12 +69,18 @@ app.get("/", (req, res) => {
 });
 
 // Add this endpoint
-app.get("/api/sensor", (req, res) => {
-  if (latestSensorData) {
-    res.json(latestSensorData);
-  } else {
-    res.status(404).json({ error: "No sensor data available" });
+app.get("/api/sensor", async (req, res) => {
+  const { data, error } = await supabase
+    .from("sensor_data")
+    .select("*")
+    .order("timestamp", { ascending: false })
+    .limit(1);
+
+  if (error || !data || data.length === 0) {
+    return res.status(500).json({ error: "Failed to fetch sensor data" });
   }
+
+  res.json(data[0]);
 });
 
 app.get("/api/sensor/logs", async (req, res) => {
